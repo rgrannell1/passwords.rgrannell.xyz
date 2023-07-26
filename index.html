@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex">
+    <meta name="googlebot" content="noindex">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="Description" content="Derive passwords from master passwords">
+
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="shortcut icon" type="image/png" href="/icons/favicon-32x32.png">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#004D9F">
+
+    <link rel="stylesheet" href="style.css"/>
+
+    <title>passwords.rgrannell.xyz</title>
+  </head>
+  <body>
+    <main>
+      <h1>Passwords</h1>
+
+      <form onsubmit="calculatePassword(event)">
+        <label>Service</label>
+        <input
+          title="A service name or website"
+          type="text"
+          id="service"
+          name="service"
+          required="true"/>
+
+        <label>Master Password</label>
+        <input
+          title="Your secure master password"
+          type="password"
+          id="master-password"
+          name="master-password"
+          required="true"/>
+
+        <input id="submit" type="submit" value="Calculate Password"/>
+      </form>
+    </main>
+  </body>
+  <script src="index.js"></script>
+</html>
