@@ -22,6 +22,12 @@
     <main>
       <h1>Passwords</h1>
 
+      <noscript>
+        <p>
+          This page requires JavaScript to calculate passwords.
+        </p>
+      </noscript>
+
       <form onsubmit="calculatePassword(event)">
         <label>Service</label>
         <input
@@ -39,9 +45,43 @@
           name="master-password"
           required="true"/>
 
-        <input id="submit" type="submit" value="Calculate Password"/>
+        <details>
+          <summary>Options</summary>
+
+          <label>Iterations</label>
+          <input
+            title="The PBKD2 iterations to use. Set this as high as is tolerable."
+            type="number"
+            id="iterations"
+            name="iterations"
+            value="1000000"/>
+
+          <label>Length</label>
+          <input
+            title="Generated password length"
+            type="number"
+            id="length"
+            name="length"
+            value="20"/>
+
+        </details>
+
+        <input
+          title="Calculate a password, in-browser"
+          id="submit"
+          type="submit"
+          class="button-default"
+          value="Calculate Password"/>
       </form>
+
     </main>
   </body>
   <script src="index.js"></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  } else {
+    console.error('Service workers are not supported.');
+  }
+  </script>
 </html>

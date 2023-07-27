@@ -1,10 +1,21 @@
 
+:root {
+  --input-border: #ccc;
+  --button-text: #fff;
+  --button-background-default: #004D9F;
+  --button-background-hover: #004D9F;
+  --button-background-copying: #004D9F;
+  --button-background-copied: #009f5a;
+  --button-background-failed: #A52B2B;
+}
+
 h1 {
   text-align: center;
+  margin-bottom: 80px;
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: Sans-serif;
 }
 
 form {
@@ -14,35 +25,56 @@ form {
   margin: 0 auto;
 }
 
+summary {
+  margin-bottom: 20px;
+}
+
+form details {
+  display: flex;
+}
+
 label {
   margin-bottom: 5px;
 }
 
 input[type="text"],
+input[type="number"],
 input[type="password"] {
   padding: 5px;
   margin-bottom: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
 }
 
+/*
+ * Button UX
+ *
+ */
 input[type="submit"] {
+  margin-top: 20px;
   padding: 10px;
-  color: #fff;
+  color: var(--button-text);
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  background-color: #004D9F;
+}
+
+.button-default:hover {
+  filter: brightness(85%);
 }
 
 .button-copied {
-  background-color: #004D9F;
+  background-color: var(--button-background-copied);
 }
 
 .button-copying {
-  background-color: #004D9F;
+  background-color: var(--button-background-copying);
 }
 
 .button-failed {
-  background-color: #A52B2B;
+  background-color: var(--button-background-failed);
+}
+
+.button-default {
+  background-color: var(--button-background-default);
 }

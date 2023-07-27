@@ -1,8 +1,26 @@
-function hexToBigInt(base16String) {
+
+const constants = {
+  AlPHANUMERIC: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYXabcdefghijklmnopqrstuvwxyx",
+  BUTTON_RESET_TIMEOUT: 2_500,
+  text: {
+    BUTTON_COPIED: "Copied to Clipboard!",
+    BUTTON_COPYING: "Calculating...",
+    BUTTON_DEFAULT: "Calcuate Password",
+    BUTTON_FAILED: "Copy Failed!",
+  }
+}
+
+/*
+ * Convert a hex string to a BigInt
+ *
+ * @param {string} str - The hex string to convert
+ * @returns {BigInt} The BigInt representation of the hex string
+ */
+function hexToBigInt(str) {
   // Remove any leading "0x" if present
-  const normalizedBase16 = base16String.startsWith("0x")
-    ? base16String.slice(2)
-    : base16String;
+  const normalizedBase16 = str.startsWith("0x")
+    ? str.slice(2)
+    : str;
 
   // Convert each character in the normalizedBase16 to BigInt and concatenate them
   let bigint = BigInt(0);
@@ -15,12 +33,15 @@ function hexToBigInt(base16String) {
   return bigint;
 }
 
-const AlPHANUMERIC =
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYXabcdefghijklmnopqrstuvwxyx";
-
-const convertCharset = (str) => {
+/*
+ * Convert a BigInt to an alphanumeric string
+ *
+ * @param {BigInt} num - The BigInt to convert
+ * @returns {string} The alphanumeric representation of the BigInt
+ */
+function toAlphanumeric (str) {
   const digits = [];
-  const chars = AlPHANUMERIC.split("");
+  const chars = constants.AlPHANUMERIC.split("");
   var num = hexToBigInt(str);
 
   while (num > 0n) {
@@ -33,13 +54,29 @@ const convertCharset = (str) => {
   return digits.join("");
 };
 
+/*
+ * Convert a buffer to a hex string
+ *
+ * @param {ArrayBuffer} buffer - The buffer to convert
+ * @returns {string} The hex representation of the buffer
+ */
 function bufferToHex(buffer) {
   return [...new Uint8Array(buffer)]
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 }
 
-async function derivePassword(service, masterPassword) {
+/*
+ * Derive a password from a master password and service
+ *
+ * @param {string} service - The service to derive the password for
+ * @param {string} masterPassword - The master password to derive the password from
+ * @param {number} iterations - The number of iterations to use in the PBKDF2 algorithm
+ * @param {number} keyLength - The length of the derived key
+ *
+ * @returns {string} The derived password
+ */
+async function derivePassword(service, masterPassword, iterations, keyLength) {
   const keyMaterial = await window.crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(masterPassword),
@@ -47,9 +84,6 @@ async function derivePassword(service, masterPassword) {
     false,
     ["deriveBits", "deriveKey"],
   );
-
-  const bitsLength = 20 * 8 * 6;
-  const iterations = 1_000_000;
 
   const derivedKey = await window.crypto.subtle.deriveBits(
     {
@@ -59,59 +93,81 @@ async function derivePassword(service, masterPassword) {
       hash: "SHA-1",
     },
     keyMaterial,
-    bitsLength,
+    keyLength * 8 * 6,
   );
 
-  return convertCharset(bufferToHex(derivedKey)).slice(0, 20);
+  return toAlphanumeric(bufferToHex(derivedKey)).slice(0, keyLength);
 }
 
+/*
+ * Write a string to the clipboard
+ *
+ * @param {string} key - The string to write to the clipboard
+ * @returns {Promise} A promise that resolves when the string has been written to the clipboard
+ */
 async function writeClipboard(key) {
   return navigator.clipboard.writeText(key);
 }
 
+const state = {
+  resetPid: null,
+}
+
+/*
+ * Calculate the password and write it to the clipboard
+ *
+ * @param {Event} event - the submit event
+ * @returns {Promise} A promise that resolves when the password has been written to the clipboard
+ */
 async function calculatePassword(event) {
   event.preventDefault();
-
-  const BUTTON_RESET_TIMEOUT = 2_000;
 
   const $service = document.getElementById("service");
   const $masterPassword = document.getElementById("master-password");
   const $button = document.getElementById("submit");
+  const $iterations = document.getElementById("iterations");
+  const $length = document.getElementById("length");
 
   const service = $service.value;
   const masterPassword = $masterPassword.value;
+  const iterations = parseInt($iterations.value, 10);
+  const keyLength = parseInt($length.value, 10);
 
-  if (!service || !masterPassword) {
-    return
+  if ($button.className !== "button-default") {
+    return;
   }
 
-  $button.value = "Calculating...";
+  if (!service || !masterPassword) {
+    return;
+  }
+
+  $button.value = constants.text.BUTTON_COPYING;
   $button.className = "button-copying";
 
-
   const derivedPassword = await derivePassword(
-    $service,
-    $masterPassword,
+    service,
+    masterPassword,
+    iterations,
+    keyLength
   );
 
-  // give feedback via the submit button
   try {
     await writeClipboard(derivedPassword);
 
-    $button.value = "Copied!";
+    $button.value = constants.text.BUTTON_COPIED;
     $button.className = "button-copied";
-
-    setTimeout(() => {
-      $button.value = "Calculate Password";
-      $button.className = "button-copied";
-    }, 2000);
   } catch (err) {
-    $button.value = "Copy Failed!";
+    $button.value = constants.text.BUTTON_FAILED;
     $button.className = "button-failed";
+  } finally {
+    if (state.resetPid) {
+      return;
+    }
 
-    setTimeout(() => {
-      $button.value = "Calculate Password";
-      $button.className = "button-copied";
-    }, 2000);
+    state.resetPid = setTimeout(() => {
+      $button.value = constants.text.BUTTON_DEFAULT;
+      $button.className = "button-default";
+      state.resetPid = null;
+    }, constants.BUTTON_RESET_TIMEOUT);
   }
 }
