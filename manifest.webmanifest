@@ -1,6 +1,6 @@
 {
-  "name": "passwords.rgrannell.xyz",
-  "short_name": "passwords.rgrannell.xyz",
+  "name": "passwords",
+  "short_name": "passwords",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#004D9F",
