@@ -157,6 +157,7 @@ async function calculatePassword(event) {
     $button.value = constants.text.BUTTON_COPIED;
     $button.className = "button-copied";
   } catch (err) {
+    console.error(err);
     $button.value = constants.text.BUTTON_FAILED;
     $button.className = "button-failed";
   } finally {
