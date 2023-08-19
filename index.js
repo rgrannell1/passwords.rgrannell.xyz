@@ -7,6 +7,7 @@ const constants = {
     BUTTON_COPYING: "Calculating...",
     BUTTON_DEFAULT: "Calcuate Password",
     BUTTON_FAILED: "Copy Failed!",
+    BUTTON_AWAITING_FOCUS: "Refocus Page to Copy",
   }
 }
 
@@ -111,6 +112,45 @@ async function writeClipboard(key) {
 
 const state = {
   resetPid: null,
+  focusPid: null,
+}
+
+/*
+ * Copy to the clipboard, and update the page state as needed
+ *
+ * @param {string} derivedPassword - The password to copy to the clipboard
+ * @param {object} state - The page state
+ */
+async function performCopy(derivedPassword, state) {
+  const $button = document.getElementById("submit");
+
+  try {
+    await writeClipboard(derivedPassword);
+
+    $button.value = constants.text.BUTTON_COPIED;
+    $button.className = "button-copied";
+  } catch (err) {
+    console.error(err);
+    $button.className = "button-failed";
+    $button.value = constants.text.BUTTON_FAILED;
+  } finally {
+    if (state.resetPid) {
+      return;
+    }
+
+    state.resetPid = setTimeout(() => {
+      $button.value = constants.text.BUTTON_DEFAULT;
+      $button.className = "button-default";
+      state.resetPid = null;
+    }, constants.BUTTON_RESET_TIMEOUT);
+  }
+}
+
+/*
+ * Check if the window has focus
+ */
+function hasFocus() {
+  return document.hasFocus();
 }
 
 /*
@@ -151,24 +191,19 @@ async function calculatePassword(event) {
     keyLength
   );
 
-  try {
-    await writeClipboard(derivedPassword);
+  $button.value = constants.text.BUTTON_AWAITING_FOCUS;
+  $button.className = "button-awaiting-focus";
 
-    $button.value = constants.text.BUTTON_COPIED;
-    $button.className = "button-copied";
-  } catch (err) {
-    console.error(err);
-    $button.value = constants.text.BUTTON_FAILED;
-    $button.className = "button-failed";
-  } finally {
-    if (state.resetPid) {
+  if (state.focusPid) {
+    clearInterval(state.focusPid);
+  }
+
+  state.focusPid = setInterval(async () => {
+    if (!hasFocus()) {
       return;
     }
 
-    state.resetPid = setTimeout(() => {
-      $button.value = constants.text.BUTTON_DEFAULT;
-      $button.className = "button-default";
-      state.resetPid = null;
-    }, constants.BUTTON_RESET_TIMEOUT);
-  }
+    await performCopy(derivedPassword, state);
+    clearInterval(state.focusPid);
+  }, 250);
 }

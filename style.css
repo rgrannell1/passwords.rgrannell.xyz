@@ -5,6 +5,7 @@
   --button-background-default: #004D9F;
   --button-background-hover: #004D9F;
   --button-background-copying: #004D9F;
+  --button-background-awaiting-focus: #004D9F;
   --button-background-copied: #009f5a;
   --button-background-failed: #A52B2B;
 }
@@ -69,6 +70,10 @@ input[type="submit"] {
 
 .button-copying {
   background-color: var(--button-background-copying);
+}
+
+.button-awaiting-focus {
+  background-color: var(--button-background-awaiting-focus);
 }
 
 .button-failed {
